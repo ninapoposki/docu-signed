@@ -38,7 +38,7 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.inputField {
+/* .inputField {
   padding: 12px;
   margin: 10px 0;
   border: 1px solid #ccc;
@@ -49,7 +49,7 @@
 
 .inputField:focus {
   outline: 1px solid rgb(132, 130, 130);
-}
+} */
 
 .errorMessage {
   color: red;
@@ -63,7 +63,7 @@
   margin-top: 10px;
 }
 
-button {
+/* button {
   padding: 12px 20px;
   background-color: #d1c488;
   color: white;
@@ -86,7 +86,7 @@ button:hover {
 button:disabled {
   background-color: #b0b0b0;
   cursor: not-allowed;
-}
+} */
 .signUpLink {
   display: block;
   text-align: center;

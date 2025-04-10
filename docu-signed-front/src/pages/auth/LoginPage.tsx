@@ -3,6 +3,8 @@ import { login } from "../../services/AuthService.ts";
 import { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
+import Button from "../../components/button/Button.tsx";
+import InputField from "../../components/input/InputField.tsx";
 
 // import InputField from '../../components/common/InputFiels';
 // import Button from '../../components/common/Button';
@@ -39,23 +41,23 @@ function LoginPage() {
       <div className={styles.formContainer}>
         <h2 className={styles.title}>Welcome to DocuSigned!</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            className={styles.inputField}
+          <InputField
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
           />
-          <input
-            className={styles.inputField}
+          <InputField
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
           />
-          <button className={styles.button} type="submit">
+
+          {/* <button className={styles.button} type="submit">
             Login
-          </button>
+          </button> */}
+          <Button type="submit">Login</Button>
           <div className={styles.signUpLink}>
             Don’t have an account? Sign Up
           </div>
