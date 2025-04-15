@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { login } from "../../services/AuthService.ts";
+import { login } from "../../services/AuthService";
 import { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
-import Button from "../../components/button/Button.tsx";
-import InputField from "../../components/input/InputField.tsx";
+import Button from "../../components/button/Button";
+import InputField from "../../components/input/InputField";
 
 // import InputField from '../../components/common/InputFiels';
 // import Button from '../../components/common/Button';
 
+//VALIDACIJAA!!!
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +60,7 @@ function LoginPage() {
           </button> */}
           <Button type="submit">Login</Button>
           <div className={styles.signUpLink}>
-            Don’t have an account? Sign Up
+            Don’t have an account? <Link to="/register">Sign Up</Link>
           </div>
           {errorMessage && (
             <p className={styles.errorMessage}>{errorMessage}</p>
