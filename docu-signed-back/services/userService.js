@@ -16,11 +16,7 @@ const userService = {
     //hesiranje lozinke-8 salt rounds -koliko puta ce se lozinka procesirati tokom hesiranja
     const hashedPassword = await bcrypt.hash(userData.password, 8);
 
-    const newUser = new User({
-      // ...userData,
-      // password: hashedPassword,
-      // createdAt: new Date(),
-      //...userData,hesirana lozinka
+    const createdUser = await userRepository.create({
       email: userData.email,
       password: hashedPassword,
       firstName: userData.firstName,
@@ -28,8 +24,6 @@ const userService = {
       gender: userData.gender,
       createdAt: new Date(),
     });
-    // return await userRepository.create(newUser);
-    const createdUser = await userRepository.create(newUser);
 
     return new UserDTO(
       createdUser.id,

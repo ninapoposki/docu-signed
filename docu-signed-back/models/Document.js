@@ -1,47 +1,47 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
-const Document = require("./Document");
 
-const User = sequelize.define(
-  "User",
+const Document = sequelize.define(
+  "Document",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    email: {
-      type: DataTypes.STRING,
+    userId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
     },
-    password: {
+    type: {
+      type: DataTypes.STRING,
+    },
+    size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        max: 20 * 1024 * 1024, // 20MB
+      },
+    },
+    originalName: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        len: [6],
+        notEmpty: true,
       },
     },
-    firstName: {
+    savedName: {
       type: DataTypes.STRING,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-    },
-    gender: {
-      type: DataTypes.ENUM("male", "female", "other"),
     },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
   },
-
   {
-    tableName: "users",
+    tableName: "documents",
     timestamps: false,
   }
 );
-User.hasMany(Document, { foreignKey: "userId", onDelete: "CASCADE" });
-Document.belongsTo(User, { foreignKey: "userId" });
-module.exports = User;
+
+module.exports = Document;

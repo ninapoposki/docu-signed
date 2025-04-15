@@ -1,8 +1,8 @@
 class UserDTO {
-  constructor({ id, email, password, firstName, lastName, gender }) {
+  constructor({ id, email, firstName, lastName, gender }) {
     this.id = id;
     this.email = email;
-    this.password = password;
+    // this.password = password;
     this.firstName = firstName;
     this.gender = gender;
   }
@@ -16,3 +16,8 @@ class UserDTO {
   }
 }
 module.exports = UserDTO;
+
+//constants-za boje -sve iste
+//assests-slicice
+//components-za globalne
+//
