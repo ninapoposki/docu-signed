@@ -1,21 +1,20 @@
-const db=require('../db');
-const  User=require('../models/User');
+const db = require("../db");
+const User = require("../models/User");
 
-const UserRepository={
-    async create(userData){
-        //prosledjen objekat
-        const{email,password,firstName,lastName,gender}=userData
-   
-        
-        const result=await db.query(
-            `INSERT INTO users (email,password,first_name,last_name,gender)
-             VALUES ($1,$2,$3,$4,$5)
-             RETURNING *`,
-            [email,password,firstName,lastName,gender]
-        );
+const userRepository = {
+  async create(userData) {
+    const user = await User.create(userData);
+    return user;
+  },
 
-        return new User(result.rows[0]); //upisani red  kao objekat
-
-
-    }
+  async findByEmail(email) {
+    const user = await User.findOne({ where: { email } });
+    return user;
+  },
+  async findById(id) {
+    const user = await User.findByPk(id);
+    return user;
+  },
 };
+
+module.exports = userRepository;

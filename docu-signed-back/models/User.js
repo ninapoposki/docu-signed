@@ -1,31 +1,47 @@
-class User{
-    constructor({id,email,password,firstName,lastName,gender,createdAt}){
-        this.id=id;
-        this.email=email;
-        this.password=password;
-        this.firstName=firstName;
-        this.lastName=lastName;
-        this.gender=gender;
-        this.createdAt=createdAt;
-        this.validate();
-    }
+const { DataTypes } = require("sequelize");
+const sequelize = require("../sequelize");
+const Document = require("./Document");
 
-    validate(){
-        if(!this.email || this.email.trim()===''){
-            throw new Error('email is required');
-        }
-        if(!this.password || this.password.length<6){
-            throw new Error('password is required and must have at least 6 characters');
-        }
-        if(this.gender && !User.genders.includes(this.gender.toLowerCase())){
-            throw new Error('invalid gender');
-        }
+const User = sequelize.define(
+  "User",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        len: [6],
+      },
+    },
+    firstName: {
+      type: DataTypes.STRING,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+    },
+    gender: {
+      type: DataTypes.ENUM("male", "female", "other"),
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
 
-    }
-
-    static get genders(){
-        return['m','f','o']; //male,female,other
-    }
-}
-
-module.exports=User;
+  {
+    tableName: "users",
+    timestamps: false,
+  }
+);
+User.hasMany(Document, { foreignKey: "userId", onDelete: "CASCADE" });
+Document.belongsTo(User, { foreignKey: "userId" });
+module.exports = User;
