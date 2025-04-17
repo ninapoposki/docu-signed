@@ -5,7 +5,7 @@ export interface SelectOption {
 
 export interface SelectFieldProps {
   name: string;
-  value: string;
+  value?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;

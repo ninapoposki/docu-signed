@@ -1,4 +1,3 @@
-const db = require("../db");
 const Document = require("../models/Document");
 
 const documentRepository = {

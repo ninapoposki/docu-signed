@@ -1,5 +1,3 @@
-const Document = require("../models/Document");
-const DocumentDTO = require("../dtos/DocumentDTO");
 const documentRepository = require("../repositories/DocumentRepository");
 
 const documentService = {

@@ -1,18 +1,18 @@
-import React, { useEffect } from "react";
-import axios from "axios";
-import LoginPage from "./pages/auth/LoginPage.tsx";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import RegisterPage from "./pages/auth/RegisterPage.tsx";
+import React, { useEffect } from 'react';
+import axios from 'axios';
+import LoginPage from './pages/auth/LoginPage.tsx';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import RegisterPage from './pages/auth/RegisterPage.tsx';
 
 function App() {
   useEffect(() => {
     axios
-      .get("http://localhost:5000")
+      .get('http://localhost:5000')
       .then((response) => {
-        console.log("Connection successful:", response.data);
+        console.log('Connection successful:', response.data);
       })
       .catch((error) => {
-        console.error("Error during connection:", error);
+        console.error('Error during connection:', error);
       });
   }, []);
 

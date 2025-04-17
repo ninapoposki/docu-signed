@@ -4,6 +4,7 @@ class UserDTO {
     this.email = email;
     // this.password = password;
     this.firstName = firstName;
+    this.lastName = lastName;
     this.gender = gender;
   }
 
