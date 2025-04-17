@@ -1,9 +1,9 @@
-import React from "react";
-import styles from "./Button.module.css";
-import { ButtonProps } from "./Button.types";
+import React from 'react';
+import styles from './Button.module.css';
+import { ButtonProps } from './Button.types';
 
 const Button = ({
-  type = "button",
+  type = 'button',
   disabled = false,
   onClick,
   children,

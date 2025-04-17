@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-const User = require("../models/User");
 const UserDTO = require("../dtos/UserDTO");
 const userRepository = require("../repositories/UserRepository");
 const jwt = require("jsonwebtoken");
@@ -41,7 +40,7 @@ const userService = {
     if (!user) {
       throw new Error("Invalid email or password");
     }
-    console.log("User password: ", user.password); // Proveri šta je pohranjeno u bazi
+    console.log("User password: ", user.password);
 
     //poredjenje hesirane lozinke sa vec postojecom
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -58,6 +57,11 @@ const userService = {
       }
     );
     return token;
+  },
+
+  async checkUserExistence(email) {
+    const user = await userRepository.findByEmail(email);
+    return user ? true : false;
   },
 };
 module.exports = userService;
