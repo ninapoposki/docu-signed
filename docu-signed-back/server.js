@@ -21,6 +21,9 @@ app.use("/api/documents", docRoutes);
 // app.listen(PORT, () => {
 //   console.log(`Port for server: http://localhost:${PORT}`);
 // });
+//za prikaz fajlova
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 sequelize
   .sync({ alter: true })

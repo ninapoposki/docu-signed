@@ -2,6 +2,7 @@ const express = require("express");
 const documentController = require("../controllers/DocumentController");
 const router = express.Router();
 const upload = require("../multer/upload");
+const verifyToken = require("../security/VerifyToken");
 
 // router.post("/upload", documentController.uploadDocument);
 // router.post(
@@ -11,6 +12,7 @@ const upload = require("../multer/upload");
 // );
 router.post(
   "/upload",
+  verifyToken,
   upload.single("file"),
   (req, res, next) => {
     // console.log("multer finished:", req.file);

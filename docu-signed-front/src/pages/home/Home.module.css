@@ -9,21 +9,11 @@
 }
 
 .container {
-  /* font-family: var(--font-family); */
-  /* font-family: var(--font-family); */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
-  /* background-color: var(
-    --light-cream
-  );*/
-  /* background-image: url("../../assets/homepagepic.jpg"); */
-  /* background-image: url("../../assets/homepagepic.jpg");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat; */
 }
 .container {
   /* font-family: var(--font-family); */
@@ -192,4 +182,55 @@
   text-align: center;
   margin-right: 150px;
   margin-left: -50px;
+}
+.previewBox {
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: fit-content;
+  background-color: #f8f4e6;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.tinyButton {
+  background-color: #62c4c3;
+  border: none;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.tinyButton:hover {
+  background-color: #5193b3;
+}
+
+.filename {
+  font-size: 0.75rem;
+  color: #444;
+  margin-bottom: 5px;
+}
+
+.tinyPreviewImage {
+  width: 120px;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.tinyPreviewPdf {
+  width: 120px;
+  height: 150px;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }

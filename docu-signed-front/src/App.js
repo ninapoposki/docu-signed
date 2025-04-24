@@ -4,6 +4,8 @@ import LoginPage from "./pages/auth/LoginPage.tsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RegisterPage from "./pages/auth/RegisterPage.tsx";
 import HomePage from "./pages/home/Home.tsx";
+import SignDocumentPage from "./pages/document/SignDocumentPage.tsx";
+import MainLayout from "./components/layout/MainLayout.tsx";
 function App() {
   useEffect(() => {
     axios
@@ -17,15 +19,22 @@ function App() {
   }, []);
 
   return (
+    // <Router>
+    //   <Routes>
+    //     <Route path="/" element={<HomePage />} />
+    //     <Route path="/login" element={<LoginPage />} />
+    //     <Route path="/register" element={<RegisterPage />} />
+    //   </Routes>
+    // </Router>
     <Router>
-      {/* <div style={{ textAlign: "center", paddingTop: "50px" }}>
-        <h1>Docku Signed Frontend</h1> */}
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/upload" element={<SignDocumentPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
       </Routes>
-      {/* </div> */}
     </Router>
   );
 }
