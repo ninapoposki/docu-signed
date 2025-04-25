@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import styles from "./SignDocumentPage.module.css";
 import { useLocation } from "react-router-dom";
 import { useDrop, useDrag } from "react-dnd";
+import Button from "../../components/button/Button";
 
 const SignDocumentPage = () => {
   const { state } = useLocation();
@@ -316,14 +317,14 @@ const SignDocumentPage = () => {
                 />
               </label>
 
-              <button onClick={handleManualAdd} className={styles.addField}>
+              <Button onClick={handleManualAdd} className={styles.addField}>
                 Add Signature Field
-              </button>
+              </Button>
             </>
           )}
         </div>
 
-        <button
+        {/* <Button
           className={styles.resetBtn}
           onClick={() => {
             setSignatureWidth("120");
@@ -334,9 +335,9 @@ const SignDocumentPage = () => {
           }}
         >
           Reset
-        </button>
+        </Button> */}
 
-        <button className={styles.sendBtn}>Send for Signature</button>
+        <Button className={styles.sendBtn}>Send for Signature</Button>
       </div>
     </div>
   );

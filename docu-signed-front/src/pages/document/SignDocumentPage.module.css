@@ -1,3 +1,13 @@
+:root {
+  --light-cream: #f8f4e6;
+  --light-beige: #f1e0c6;
+  --light-gray: #9ea283;
+  --dark-gray: #333;
+  --light-orange: #d1c488;
+  --white: #ffffff;
+  --font-family: "Poppins", sans-serif;
+}
+
 .wrapper {
   display: flex;
   justify-content: space-between;
@@ -17,16 +27,22 @@
 
 .previewContainer {
   position: relative;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  border: 2px solid var(--light-orange);
+  border-radius: 12px;
+  background-color: var(--white);
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px;
 }
 
 .pdfViewer,
 .imageViewer {
   width: 100%;
   height: 600px;
+  display: block;
+  margin: 0 auto;
   border: none;
+  object-fit: contain;
 }
 
 .signatureField {
@@ -39,74 +55,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.sidebar {
-  width: 25%;
-  padding: 20px;
-  background-color: #f8f4e6;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.sidebar h3 {
-  margin-bottom: 10px;
-}
-
-.sidebar label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9rem;
-}
-
-.sidebar input,
-.sidebar textarea {
-  margin-top: 5px;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.addField {
-  background-color: #62c4c3;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.resetBtn {
-  background-color: #ccc;
-  color: #222;
-  border: none;
-  padding: 6px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.sendBtn {
-  margin-top: 10px;
-  background-color: #5193b3;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.signatureField {
-  position: absolute;
   width: 150px;
   height: 1px;
   border: none;
   border-bottom: 2px solid #555;
   color: transparent;
   background: transparent;
-  cursor: pointer;
   z-index: 10;
 }
 
@@ -118,6 +72,7 @@
   font-size: 0.8rem;
   color: #555;
 }
+
 .selected {
   box-shadow: 0 0 0 3px #5193b3;
 }
@@ -144,4 +99,118 @@
 
 .signatureField:hover .deleteBtn {
   display: flex;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: var(--light-beige);
+  padding: 25px 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--font-family);
+}
+
+.sidebar h3 {
+  font-size: 1.5rem;
+  color: var(--dark-gray);
+  text-align: center;
+  font-weight: 600;
+}
+
+.modeButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeButtons button {
+  background-color: var(--light-orange);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modeButtons button:hover {
+  background-color: #b9a661;
+}
+
+.draggableBox {
+  background-color: var(--white);
+  border: 2px dashed var(--light-orange);
+  padding: 14px;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--light-orange);
+  font-size: 0.95rem;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.settings input[type="number"],
+.settings input[type="color"] {
+  padding: 8px 12px;
+  border: 1px solid var(--light-gray);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background-color: var(--white);
+  margin-top: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.settings input:focus {
+  outline: none;
+  border-color: var(--light-orange);
+}
+
+.addField {
+  background-color: var(--light-orange) !important;
+  color: var(--white) !important;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.sendBtn {
+  margin-top: auto;
+  background-color: var(--light-gray) !important;
+  color: var(--white) !important;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 1rem;
+}
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../../assets/homepagepic.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  z-index: -1;
 }
