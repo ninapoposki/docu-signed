@@ -20,14 +20,25 @@ const MainLayout = () => {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.logoContainer}>
+        {/* <div className={styles.logoContainer}>
           <img
             src={require("../../assets/logodocu.png")}
             alt="DocuSigned Logo"
             className={styles.logoImage}
           />
           <h1 className={styles.logo}>DocuSigned</h1>
+        </div> */}
+        <div className={styles.logoContainer}>
+          <Link to="/" className={styles.logoLink}>
+            <img
+              src={require("../../assets/logodocu.png")}
+              alt="DocuSigned Logo"
+              className={styles.logoImage}
+            />
+            <h1 className={styles.logo}>DocuSigned</h1>
+          </Link>
         </div>
+
         <nav className={styles.navbar}>
           <ul>
             <li>

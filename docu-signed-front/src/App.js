@@ -6,6 +6,9 @@ import RegisterPage from "./pages/auth/RegisterPage.tsx";
 import HomePage from "./pages/home/Home.tsx";
 import SignDocumentPage from "./pages/document/SignDocumentPage.tsx";
 import MainLayout from "./components/layout/MainLayout.tsx";
+import SignaturePage from "./pages/signature/SignaturePage.tsx";
+import FinalDocumentPage from "./pages/final/FinalDocumentPage.tsx";
+
 function App() {
   useEffect(() => {
     axios
@@ -33,6 +36,8 @@ function App() {
           <Route path="/upload" element={<SignDocumentPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="sign-document/:id" element={<SignaturePage />} />
+          <Route path="/final-document" element={<FinalDocumentPage />} />
         </Route>
       </Routes>
     </Router>

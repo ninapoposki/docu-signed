@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --light-cream: #f8f4e6;
   --light-beige: #f1e0c6;
   --light-gray: #9ea283;
@@ -6,7 +6,7 @@
   --light-orange: #d1c488;
   --white: #ffffff;
   --font-family: "Poppins", sans-serif;
-}
+} */
 
 .wrapper {
   display: flex;
@@ -25,7 +25,19 @@
   margin-bottom: 20px;
 }
 
+/* .previewContainer {
+  position: relative;
+  border: 2px solid var(--light-orange);
+  border-radius: 12px;
+  background-color: var(--white);
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+} */
 .previewContainer {
+  width: 800px;
+  max-width: 100%;
+  margin: 0 auto;
   position: relative;
   border: 2px solid var(--light-orange);
   border-radius: 12px;
@@ -111,6 +123,10 @@
   flex-direction: column;
   gap: 24px;
   font-family: var(--font-family);
+  margin-top: 80px;
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
 }
 
 .sidebar h3 {
@@ -202,7 +218,7 @@
 }
 body::before {
   content: "";
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -213,4 +229,31 @@ body::before {
   background-repeat: no-repeat;
   opacity: 0.3;
   z-index: -1;
+}
+
+.docxWrapper {
+  background: var(--white);
+
+  position: relative;
+  width: 100%;
+  height: 700px;
+}
+
+.docxPreview {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: var(--white);
+  /* padding: 20px; */
+  box-sizing: border-box;
+}
+
+.pdfPageContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.pageContent {
+  max-width: 600px;
+  width: 100%;
 }

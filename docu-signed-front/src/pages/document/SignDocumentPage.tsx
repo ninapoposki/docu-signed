@@ -1,14 +1,41 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./SignDocumentPage.module.css";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDrop, useDrag } from "react-dnd";
 import Button from "../../components/button/Button";
+import { Document, Page, pdfjs } from "react-pdf";
+import { renderAsync } from "docx-preview";
+import SignatureForm from "../../components/signature/SignatureForm";
+import { sendForSignature } from "../../services/DocumentService";
+// pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const SignDocumentPage = () => {
   const { state } = useLocation();
   const { document } = state || {};
+  const navigate = useNavigate();
   const fileUrl = `http://localhost:5000/uploads/${document?.savedName}`;
+  console.log("PDF URL being passed to Document:", fileUrl);
+  console.log("DOCUMENT:", document);
+  console.log("document.type:", document?.type);
+  console.log("fileUrl:", fileUrl);
+
   const previewRef = useRef<HTMLDivElement | null>(null);
+  //za docx
+  const docxContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (document?.type?.includes("wordprocessingml.document")) {
+      fetch(fileUrl)
+        .then((res) => res.blob())
+        .then((blob) => {
+          if (docxContainerRef.current) {
+            renderAsync(blob, docxContainerRef.current);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [fileUrl, document]);
 
   const [mode, setMode] = useState<"drag" | "manual">("drag");
   const [signatureFields, setSignatureFields] = useState<any[]>([]);
@@ -18,6 +45,17 @@ const SignDocumentPage = () => {
   const [manualLeft, setManualLeft] = useState("100");
   const [manualTop, setManualTop] = useState("100");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  //za slanje
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [showSendForm, setShowSendForm] = useState(false);
+
+  //za pdf
+  const [numPages, setNumPages] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
   //DODATO
   const [draggingId, setDraggingId] = useState<number | null>(null);
@@ -32,6 +70,15 @@ const SignDocumentPage = () => {
       y: e.clientY - field.top,
     });
   };
+  //za reload pdfa
+  useEffect(() => {
+    if (document?.type?.includes("pdf")) {
+      fetch(fileUrl)
+        .then((res) => res.blob())
+        .then((blob) => setPdfBlob(blob))
+        .catch(console.error);
+    }
+  }, [fileUrl, document]);
 
   const handleMouseMove = (e: MouseEvent) => {
     if (draggingId === null) return;
@@ -50,6 +97,27 @@ const SignDocumentPage = () => {
   const handleMouseUp = () => {
     setDraggingId(null);
   };
+  const handleSendForSignature = async () => {
+    if (!recipientEmail) {
+      alert("Please enter the recipient's email!");
+      return;
+    }
+
+    try {
+      await sendForSignature({
+        documentId: document?.id,
+        recipientEmail,
+        message,
+        deadline,
+        signatureFields,
+      });
+      alert("Document sent successfully!");
+      navigate("/");
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
   React.useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -103,6 +171,7 @@ const SignDocumentPage = () => {
             height: signatureHeight,
             color: signatureColor,
             source: "drag",
+            page: currentPage,
           },
         ]);
       }
@@ -112,21 +181,22 @@ const SignDocumentPage = () => {
     }),
   }));
 
-  const handleManualAdd = () => {
-    const id = Date.now();
-    setSignatureFields((prev) => [
-      ...prev,
-      {
-        id,
-        left: parseInt(manualLeft),
-        top: parseInt(manualTop),
-        width: signatureWidth,
-        height: signatureHeight,
-        color: signatureColor,
-        source: "manual",
-      },
-    ]);
-  };
+  // const handleManualAdd = () => {
+  //   const id = Date.now();
+  //   setSignatureFields((prev) => [
+  //     ...prev,
+  //     {
+  //       id,
+  //       left: parseInt(manualLeft),
+  //       top: parseInt(manualTop),
+  //       width: signatureWidth,
+  //       height: signatureHeight,
+  //       color: signatureColor,
+  //       source: "manual",
+  //       page: currentPage,
+  //     },
+  //   ]);
+  // };
 
   const removeField = (id: number) => {
     setSignatureFields((prev) => prev.filter((f) => f.id !== id));
@@ -144,59 +214,168 @@ const SignDocumentPage = () => {
           }}
           onClick={() => setSelectedId(null)}
         >
-          {document?.type === "application/pdf" ? (
-            <iframe
-              src={fileUrl}
-              className={styles.pdfViewer}
-              title="Document"
-            />
-          ) : (
-            <img src={fileUrl} className={styles.imageViewer} alt="Document" />
-          )}
-
-          {signatureFields.map((field) => (
-            <div
-              key={field.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedId(field.id);
-              }}
-              onMouseDown={(e) => handleMouseDown(e, field.id)}
-              className={`${styles.signatureField} ${
-                selectedId === field.id ? styles.selected : ""
-              }`}
-              style={{
-                left: `${field.left}px`,
-                top: `${field.top}px`,
-                width: `${field.width}px`,
-                height: `${field.height}px`,
-                borderBottom: `2px solid ${field.color}`,
-                position: "absolute",
-                cursor: "move",
-              }}
-              title="Click to edit or drag"
+          {document?.type?.includes("pdf") ? (
+            <Document
+              key={{ fileUrl }}
+              file={pdfBlob}
+              onLoadSuccess={({ numPages }: any) => setNumPages(numPages)}
+              loading="Loading PDF..."
+              error="Failed to load PDF."
+              options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }}
             >
-              <span
-                className={styles.deleteBtn}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeField(field.id);
-                }}
-                title="Delete"
-              >
-                ✖
-              </span>
+              {numPages &&
+                Array.from({ length: numPages }, (_, index) => (
+                  <div
+                    key={index}
+                    className={styles.pdfPage}
+                    onClick={() => setCurrentPage(index + 1)}
+                    style={{ position: "relative" }}
+                  >
+                    <Page
+                      pageNumber={index + 1}
+                      width={600}
+                      renderTextLayer={false}
+                    />
+                    {signatureFields
+                      .filter((f) => f.page === index + 1)
+                      .map((field) => (
+                        <div
+                          key={field.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedId(field.id);
+                          }}
+                          onMouseDown={(e) => handleMouseDown(e, field.id)}
+                          className={`${styles.signatureField} ${
+                            selectedId === field.id ? styles.selected : ""
+                          }`}
+                          style={{
+                            left: `${field.left}px`,
+                            top: `${field.top}px`,
+                            width: `${field.width}px`,
+                            height: `${field.height}px`,
+                            borderBottom: `2px solid ${field.color}`,
+                            position: "absolute",
+                            cursor: "move",
+                          }}
+                          title="Click to edit or drag"
+                        >
+                          <span
+                            className={styles.deleteBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeField(field.id);
+                            }}
+                          >
+                            ✖
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                ))}
+            </Document>
+          ) : document?.type?.includes("image") ? (
+            <div style={{ position: "relative" }}>
+              <img
+                src={fileUrl}
+                className={styles.imageViewer}
+                alt="Uploaded"
+                onClick={() => setSelectedId(null)}
+              />
+              {signatureFields.map((field) => (
+                <div
+                  key={field.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedId(field.id);
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, field.id)}
+                  className={`${styles.signatureField} ${
+                    selectedId === field.id ? styles.selected : ""
+                  }`}
+                  style={{
+                    left: `${field.left}px`,
+                    top: `${field.top}px`,
+                    width: `${field.width}px`,
+                    height: `${field.height}px`,
+                    borderBottom: `2px solid ${field.color}`,
+                    position: "absolute",
+                    cursor: "move",
+                  }}
+                >
+                  <span
+                    className={styles.deleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeField(field.id);
+                    }}
+                  >
+                    ✖
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : document?.type?.includes("wordprocessingml.document") ? (
+            <div className={styles.docxWrapper}>
+              <div ref={docxContainerRef} className={styles.docxPreview} />
+              {signatureFields.map((field) => (
+                <div
+                  key={field.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedId(field.id);
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, field.id)}
+                  className={`${styles.signatureField} ${
+                    selectedId === field.id ? styles.selected : ""
+                  }`}
+                  style={{
+                    left: `${field.left}px`,
+                    top: `${field.top}px`,
+                    width: `${field.width}px`,
+                    height: `${field.height}px`,
+                    borderBottom: `2px solid ${field.color}`,
+                    position: "absolute",
+                    cursor: "move",
+                  }}
+                >
+                  <span
+                    className={styles.deleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeField(field.id);
+                    }}
+                  >
+                    ✖
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.downloadBox}>
+              <p>
+                Preview not available for this file type. Please{" "}
+                <a
+                  href={fileUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  download the document
+                </a>
+                .
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       <div className={styles.sidebar}>
         <h3>Signature Mode</h3>
-        <div className={styles.modeButtons}>
+        {/* <div className={styles.modeButtons}>
           <button onClick={() => setMode("drag")}>Drag & Drop</button>
-          <button onClick={() => setMode("manual")}>Manual</button>
-        </div>
+          {/* <button onClick={() => setMode("manual")}>Manual</button> */}
+        {/* </div> * */}
 
         {mode === "drag" && (
           <div
@@ -296,7 +475,7 @@ const SignDocumentPage = () => {
             </>
           )}
 
-          {mode === "manual" && selectedId === null && (
+          {/* {mode === "manual" && selectedId === null && (
             <>
               <h4>Add new manual field</h4>
               <label>
@@ -317,27 +496,32 @@ const SignDocumentPage = () => {
                 />
               </label>
 
-              <Button onClick={handleManualAdd} className={styles.addField}>
+              {/* <Button onClick={handleManualAdd} className={styles.addField}>
                 Add Signature Field
-              </Button>
-            </>
-          )}
+              </Button> */}
+          {/* </> */}
+          {/* //  )} */}
         </div>
 
-        {/* <Button
-          className={styles.resetBtn}
-          onClick={() => {
-            setSignatureWidth("120");
-            setSignatureHeight("40");
-            setSignatureColor("#62c4c3");
-            setManualLeft("100");
-            setManualTop("100");
-          }}
-        >
-          Reset
-        </Button> */}
-
-        <Button className={styles.sendBtn}>Send for Signature</Button>
+        {/* <Button className={styles.sendBtn}>Send for Signature</Button> */}
+        {!showSendForm ? (
+          <Button
+            className={styles.sendBtn}
+            onClick={() => setShowSendForm(true)}
+          >
+            Send for Signature
+          </Button>
+        ) : (
+          <SignatureForm
+            recipientEmail={recipientEmail}
+            setRecipientEmail={setRecipientEmail}
+            message={message}
+            setMessage={setMessage}
+            deadline={deadline}
+            setDeadline={setDeadline}
+            onSend={handleSendForSignature}
+          />
+        )}
       </div>
     </div>
   );
