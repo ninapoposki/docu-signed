@@ -7,16 +7,26 @@ const MainLayout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
+    const checkLogin = () => {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    };
+    // const token = localStorage.getItem("token");
+    // setIsLoggedIn(!!token);
+    checkLogin();
+    const handleAuthChange = () => checkLogin();
+    window.addEventListener("authChanged", handleAuthChange);
+    return () => {
+      window.removeEventListener("authChanged", handleAuthChange);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
+    window.dispatchEvent(new Event("authChanged"));
     navigate("/");
   };
-
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -42,9 +52,9 @@ const MainLayout = () => {
         <nav className={styles.navbar}>
           <ul>
             <li>
-              <a href="#about" className={styles.navLink}>
+              <Link to="/about" className={styles.navLink}>
                 About DocuSigned
-              </a>
+              </Link>
             </li>
             <li>
               <a href="#contact" className={styles.navLink}>

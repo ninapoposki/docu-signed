@@ -28,6 +28,7 @@ function LoginPage() {
       const userToken = await login(email, password);
       setToken(userToken);
       localStorage.setItem("token", userToken);
+      window.dispatchEvent(new Event("authChanged"));
       setErrorMessage("");
       navigate("/");
     } catch (error) {

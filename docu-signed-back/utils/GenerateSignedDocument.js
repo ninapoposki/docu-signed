@@ -11,8 +11,8 @@ async function generateSignedDocument({
   signatureFields,
   outputPath,
 }) {
-  const displayWidth = 600;
-  const displayHeight = 600;
+  // const displayWidth = 600;
+  // const displayHeight = 600;
 
   if (fileType.includes("pdf")) {
     const existingPdfBytes = fs.readFileSync(filePath);
@@ -24,7 +24,9 @@ async function generateSignedDocument({
       const pageWidth = page.getWidth();
       const pageHeight = page.getHeight();
 
-      const scale = pageWidth / displayWidth;
+      // const scale = pageWidth / displayWidth;
+
+      const scale = pageWidth / field.displayWidth;
 
       const realLeft = field.left * scale;
       const realTop = field.top * scale;
@@ -51,24 +53,46 @@ async function generateSignedDocument({
     const image = sharp(filePath);
     const metadata = await image.metadata();
 
-    const scaleX = metadata.width / displayWidth;
-    const scaleY = metadata.height / displayHeight;
-    const composites = signatureFields.map((field) => {
-      const [r, g, b] = hexToRgb(field.color || "#000000");
+    const composites = signatureFields
+      .map((field) => {
+        const [r, g, b] = hexToRgb(field.color || "#000000");
+        const scaleX = metadata.width / (field.displayWidth || 600);
+        const scaleY = metadata.height / (field.displayHeight || 600);
+        console.log({
+          fieldLeft: field.left,
+          scaledLeft: Math.round(field.left * scaleX),
+          displayWidth: field.displayWidth,
+          realWidth: metadata.width,
+        });
+        const width = parseInt(field.width);
+        if (!width || isNaN(width) || width <= 0) {
+          console.error("Invalid width for field:", field);
+          return null;
+        }
+        console.log("=== Field ===");
+        console.log(
+          "displayWidth:",
+          field.displayWidth,
+          "realWidth:",
+          metadata.width
+        );
+        console.log("LEFT (before scale):", field.left, "scaleX:", scaleX);
+        console.log("LEFT (after scale):", Math.round(field.left * scaleX));
 
-      return {
-        input: {
-          create: {
-            width: Math.round(parseInt(field.width) * scaleX),
-            height: 3,
-            channels: 4,
-            background: { r, g, b, alpha: 1 },
+        return {
+          input: {
+            create: {
+              width: Math.round(width * scaleX),
+              height: 3,
+              channels: 4,
+              background: { r, g, b, alpha: 1 },
+            },
           },
-        },
-        top: Math.round(field.top * scaleY),
-        left: Math.round(field.left * scaleX),
-      };
-    });
+          top: Math.round(field.top * scaleY),
+          left: Math.round(field.left * scaleX),
+        };
+      })
+      .filter((item) => item !== null);
 
     await image.composite(composites).toFile(outputPath);
   } else if (fileType.includes("wordprocessingml.document")) {
@@ -80,10 +104,9 @@ async function generateSignedDocument({
     const page = pdfDoc.getPages()[0];
     const pageHeight = page.getHeight(); // 792
 
-    // Obrni top vrednosti jer frontend meri od vrha, a PDF od dna
     const adjustedFields = signatureFields.map((field) => ({
       ...field,
-      top: pageHeight - field.top, // 🔥 ovo rešava problem!
+      top: pageHeight - field.top,
     }));
 
     console.log("PDF dimenzije:", page.getWidth(), pageHeight);
@@ -108,56 +131,7 @@ function hexToRgb(hex) {
   const b = bigint & 255;
   return [r, g, b];
 }
-// async function generateSignatures({ filePath, signatureFields, outputPath }) {
-//   const ext = path.extname(filePath).toLowerCase();
 
-//   if (ext === ".pdf") {
-//     const existingPdfBytes = fs.readFileSync(filePath);
-//     const pdfDoc = await PDFDocument.load(existingPdfBytes);
-//     const pages = pdfDoc.getPages();
-//     const displayWidth = 600;
-
-//     for (const field of signatureFields) {
-//       const page = pages[field.page - 1];
-//       const pageWidth = page.getWidth();
-//       const pageHeight = page.getHeight();
-
-//       const scale = pageWidth / displayWidth;
-//       const realLeft = field.x * scale;
-//       const realTop = field.y * scale;
-//       const realWidth = parseInt(field.width) * scale;
-//       const realHeight = parseInt(field.height) * scale;
-
-//       const imageBytes = Buffer.from(field.img.split(",")[1], "base64");
-//       const pngImage = await pdfDoc.embedPng(imageBytes);
-
-//       page.drawImage(pngImage, {
-//         x: realLeft,
-//         y: pageHeight - realTop - realHeight,
-//         width: realWidth,
-//         height: realHeight,
-//       });
-//     }
-
-//     const modifiedPdfBytes = await pdfDoc.save();
-//     fs.writeFileSync(outputPath, modifiedPdfBytes);
-//   } else {
-//     const image = sharp(filePath);
-//     const metadata = await image.metadata();
-//     const displayWidth = 600;
-//     const displayHeight = 600;
-
-//     const scaleX = metadata.width / displayWidth;
-//     const scaleY = metadata.height / displayHeight;
-
-//     const composites = signatureFields.map((field) => ({
-//       input: Buffer.from(field.img.split(",")[1], "base64"),
-//       top: Math.round(field.y * scaleY),
-//       left: Math.round(field.x * scaleX),
-//     }));
-
-//     await image.composite(composites).toFile(outputPath);
-//   }
 async function generateSignatures({ filePath, signatureFields, outputPath }) {
   const ext = filePath.split(".").pop().toLowerCase();
 
@@ -202,21 +176,42 @@ async function generateSignatures({ filePath, signatureFields, outputPath }) {
     const existingPdfBytes = fs.readFileSync(filePath);
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
+    const displayWidth = 600;
 
     for (const field of signatureFields) {
-      const imgBuffer = Buffer.from(field.img.split(",")[1], "base64");
-      const embeddedImage = await pdfDoc.embedPng(imgBuffer);
       const page = pages[field.page - 1];
       const pageWidth = page.getWidth();
-      const scale = pageWidth / 600;
-      const offsetX = -90; // eksperimentalno
-      const offsetY = 0;
-      page.drawImage(embeddedImage, {
-        x: field.x * scale + offsetX,
-        y: page.getHeight() - (field.y + field.height) * scale,
-        width: field.width * scale,
-        height: field.height * scale,
-      });
+      const pageHeight = page.getHeight();
+      const scale = pageWidth / (field.displayWidth || displayWidth);
+
+      const realLeft = field.x * scale;
+      const realTop = field.y * scale - 10;
+      const realWidth = parseInt(field.width) * scale;
+      const realHeight = parseInt(field.height) * scale;
+
+      if (field.img) {
+        const imgBuffer = Buffer.from(field.img.split(",")[1], "base64");
+        const embeddedImage = await pdfDoc.embedPng(imgBuffer);
+
+        page.drawImage(embeddedImage, {
+          x: realLeft,
+          y: pageHeight - realTop - realHeight,
+          width: realWidth,
+          height: realHeight,
+        });
+      } else {
+        const [r, g, b] = hexToRgb(field.color || "#000000");
+
+        page.drawLine({
+          start: { x: realLeft, y: pageHeight - realTop - realHeight },
+          end: {
+            x: realLeft + realWidth,
+            y: pageHeight - realTop - realHeight,
+          },
+          thickness: 2,
+          color: rgb(r / 255, g / 255, b / 255),
+        });
+      }
     }
 
     const modifiedPdfBytes = await pdfDoc.save();

@@ -17,7 +17,7 @@ app.listen(5000, async () => {
   console.log("Server started on port 5000");
   try {
     const result = await documentHistoryService.sendDeadlineReminders();
-    console.log(` Deadline reminders sent: ${result.sent}`);
+    console.log(` Deadline reminders time`);
   } catch (error) {
     console.error(" Error sending reminders:", error);
   }

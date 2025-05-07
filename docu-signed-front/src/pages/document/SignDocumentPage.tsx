@@ -7,6 +7,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { renderAsync } from "docx-preview";
 import SignatureForm from "../../components/signature/SignatureForm";
 import { sendForSignature } from "../../services/DocumentService";
+import PDFWithDrop from "../../components/page-drop/PDFWithDrop";
 // pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.js`;
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -15,10 +16,6 @@ const SignDocumentPage = () => {
   const { document } = state || {};
   const navigate = useNavigate();
   const fileUrl = `http://localhost:5000/uploads/${document?.savedName}`;
-  console.log("PDF URL being passed to Document:", fileUrl);
-  console.log("DOCUMENT:", document);
-  console.log("document.type:", document?.type);
-  console.log("fileUrl:", fileUrl);
 
   const previewRef = useRef<HTMLDivElement | null>(null);
   //za docx
@@ -42,8 +39,7 @@ const SignDocumentPage = () => {
   const [signatureWidth, setSignatureWidth] = useState("120");
   const [signatureHeight, setSignatureHeight] = useState("40");
   const [signatureColor, setSignatureColor] = useState("#d1c488");
-  const [manualLeft, setManualLeft] = useState("100");
-  const [manualTop, setManualTop] = useState("100");
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   //za slanje
@@ -51,11 +47,14 @@ const SignDocumentPage = () => {
   const [message, setMessage] = useState("");
   const [deadline, setDeadline] = useState("");
   const [showSendForm, setShowSendForm] = useState(false);
-
+  //za img
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   //za pdf
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [pdfScale, setPdfScale] = useState(1);
 
   //DODATO
   const [draggingId, setDraggingId] = useState<number | null>(null);
@@ -80,6 +79,12 @@ const SignDocumentPage = () => {
     }
   }, [fileUrl, document]);
 
+  // useEffect(() => {
+  //   if (imageRef.current) {
+  //     const rect = imageRef.current.getBoundingClientRect();
+  //     setImageSize({ width: rect.width, height: rect.height });
+  //   }
+  // }, [document]);
   const handleMouseMove = (e: MouseEvent) => {
     if (draggingId === null) return;
     const newLeft = e.clientX - dragOffset.x;
@@ -153,14 +158,37 @@ const SignDocumentPage = () => {
     accept: "signature",
     drop: (item, monitor) => {
       if (mode !== "drag") return;
+
       const offset = monitor.getClientOffset();
       const container = previewRef.current;
 
       if (offset && container) {
         const containerRect = container.getBoundingClientRect();
-        const relativeX = offset.x - containerRect.left;
-        const relativeY = offset.y - containerRect.top;
+        let relativeX = offset.x - containerRect.left;
+        let relativeY = offset.y - containerRect.top;
+
         const id = Date.now();
+
+        let displayWidth = 0;
+        let displayHeight = 0;
+
+        if (document?.type?.includes("pdf")) {
+          relativeX = relativeX / pdfScale;
+          relativeY = relativeY / pdfScale;
+        }
+
+        // Prilagoditi za sve dokumente, ne samo pdf
+        if (
+          document?.type?.includes("image") ||
+          document?.type?.includes("wordprocessingml.document")
+        ) {
+          displayWidth = imageSize.width;
+          displayHeight = imageSize.height;
+        } else if (document?.type?.includes("pdf")) {
+          displayWidth = 600;
+          displayHeight = 0;
+        }
+
         setSignatureFields((prev) => [
           ...prev,
           {
@@ -172,6 +200,8 @@ const SignDocumentPage = () => {
             color: signatureColor,
             source: "drag",
             page: currentPage,
+            displayWidth,
+            displayHeight,
           },
         ]);
       }
@@ -181,23 +211,6 @@ const SignDocumentPage = () => {
     }),
   }));
 
-  // const handleManualAdd = () => {
-  //   const id = Date.now();
-  //   setSignatureFields((prev) => [
-  //     ...prev,
-  //     {
-  //       id,
-  //       left: parseInt(manualLeft),
-  //       top: parseInt(manualTop),
-  //       width: signatureWidth,
-  //       height: signatureHeight,
-  //       color: signatureColor,
-  //       source: "manual",
-  //       page: currentPage,
-  //     },
-  //   ]);
-  // };
-
   const removeField = (id: number) => {
     setSignatureFields((prev) => prev.filter((f) => f.id !== id));
   };
@@ -206,6 +219,7 @@ const SignDocumentPage = () => {
     <div className={styles.wrapper}>
       <div className={styles.leftPane}>
         <h2 className={styles.title}>{document?.originalName}</h2>
+
         <div
           className={styles.previewContainer}
           ref={(node) => {
@@ -216,72 +230,113 @@ const SignDocumentPage = () => {
         >
           {document?.type?.includes("pdf") ? (
             <Document
-              key={{ fileUrl }}
               file={pdfBlob}
               onLoadSuccess={({ numPages }: any) => setNumPages(numPages)}
               loading="Loading PDF..."
               error="Failed to load PDF."
-              options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }}
             >
-              {numPages &&
-                Array.from({ length: numPages }, (_, index) => (
-                  <div
-                    key={index}
-                    className={styles.pdfPage}
-                    onClick={() => setCurrentPage(index + 1)}
-                    style={{ position: "relative" }}
-                  >
-                    <Page
-                      pageNumber={index + 1}
-                      width={600}
-                      renderTextLayer={false}
-                    />
-                    {signatureFields
-                      .filter((f) => f.page === index + 1)
-                      .map((field) => (
-                        <div
-                          key={field.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedId(field.id);
-                          }}
-                          onMouseDown={(e) => handleMouseDown(e, field.id)}
-                          className={`${styles.signatureField} ${
-                            selectedId === field.id ? styles.selected : ""
-                          }`}
-                          style={{
-                            left: `${field.left}px`,
-                            top: `${field.top}px`,
-                            width: `${field.width}px`,
-                            height: `${field.height}px`,
-                            borderBottom: `2px solid ${field.color}`,
-                            position: "absolute",
-                            cursor: "move",
-                          }}
-                          title="Click to edit or drag"
-                        >
-                          <span
-                            className={styles.deleteBtn}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeField(field.id);
-                            }}
-                          >
-                            ✖
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ))}
+              <PDFWithDrop
+                key={currentPage}
+                pageNumber={currentPage}
+                pdfScale={pdfScale}
+                onDropField={({ left, top, page }) => {
+                  const id = Date.now();
+                  setSignatureFields((prev) => [
+                    ...prev,
+                    {
+                      id,
+                      left,
+                      top,
+                      width: signatureWidth,
+                      height: signatureHeight,
+                      color: signatureColor,
+                      source: "drag",
+                      page,
+                      displayWidth: 600,
+                      displayHeight: 0,
+                    },
+                  ]);
+                }}
+              >
+                {signatureFields
+                  .filter((f) => f.page === currentPage)
+                  .map((field) => (
+                    <div
+                      key={field.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedId(field.id);
+                      }}
+                      onMouseDown={(e) => handleMouseDown(e, field.id)}
+                      className={`${styles.signatureField} ${
+                        selectedId === field.id ? styles.selected : ""
+                      }`}
+                      style={{
+                        left: `${field.left}px`,
+                        top: `${field.top}px`,
+                        width: `${field.width}px`,
+                        height: `${field.height}px`,
+                        borderBottom: `2px solid ${field.color}`,
+                        position: "absolute",
+                        cursor: "move",
+                      }}
+                      title="Click to edit or drag"
+                    >
+                      <span
+                        className={styles.deleteBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeField(field.id);
+                        }}
+                      >
+                        ✖
+                      </span>
+                    </div>
+                  ))}
+              </PDFWithDrop>
+
+              <div className={styles.pageControls}>
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span style={{ margin: "0 12px" }}>
+                  Page {currentPage} of {numPages}
+                </span>
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(prev + 1, numPages || prev)
+                    )
+                  }
+                  disabled={currentPage === numPages}
+                >
+                  Next
+                </Button>
+              </div>
             </Document>
           ) : document?.type?.includes("image") ? (
             <div style={{ position: "relative" }}>
               <img
-                src={fileUrl}
+                src={`${fileUrl}?cacheBust=${Date.now()}`} // prisilno sprečava keširanje
+                ref={imageRef}
                 className={styles.imageViewer}
                 alt="Uploaded"
                 onClick={() => setSelectedId(null)}
+                onLoad={() => {
+                  if (imageRef.current) {
+                    const rect = imageRef.current.getBoundingClientRect();
+                    console.log("Measured on load:", rect.width, rect.height);
+
+                    setImageSize({ width: rect.width, height: rect.height });
+                  }
+                }}
               />
+
               {signatureFields.map((field) => (
                 <div
                   key={field.id}
@@ -372,10 +427,6 @@ const SignDocumentPage = () => {
 
       <div className={styles.sidebar}>
         <h3>Signature Mode</h3>
-        {/* <div className={styles.modeButtons}>
-          <button onClick={() => setMode("drag")}>Drag & Drop</button>
-          {/* <button onClick={() => setMode("manual")}>Manual</button> */}
-        {/* </div> * */}
 
         {mode === "drag" && (
           <div
@@ -474,36 +525,8 @@ const SignDocumentPage = () => {
               )}
             </>
           )}
-
-          {/* {mode === "manual" && selectedId === null && (
-            <>
-              <h4>Add new manual field</h4>
-              <label>
-                X Position:
-                <input
-                  type="number"
-                  value={manualLeft}
-                  onChange={(e) => setManualLeft(e.target.value)}
-                />
-              </label>
-
-              <label>
-                Y Position:
-                <input
-                  type="number"
-                  value={manualTop}
-                  onChange={(e) => setManualTop(e.target.value)}
-                />
-              </label>
-
-              {/* <Button onClick={handleManualAdd} className={styles.addField}>
-                Add Signature Field
-              </Button> */}
-          {/* </> */}
-          {/* //  )} */}
         </div>
 
-        {/* <Button className={styles.sendBtn}>Send for Signature</Button> */}
         {!showSendForm ? (
           <Button
             className={styles.sendBtn}

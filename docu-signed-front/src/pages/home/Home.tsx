@@ -10,8 +10,19 @@ function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token); // ako postoji token korisnik je ulogovan
+    const checkLogin = () => {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    };
+
+    checkLogin();
+
+    const handleAuthChange = () => checkLogin();
+
+    window.addEventListener("authChanged", handleAuthChange);
+    return () => {
+      window.removeEventListener("authChanged", handleAuthChange);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -44,57 +55,6 @@ function Home() {
 
   return (
     <div className={styles.container}>
-      {/* <header className={styles.header}>
-        <div className={styles.logoContainer}>
-          <img
-            src={require("../../assets/logodocu.png")}
-            alt="DocuSigned Logo"
-            className={styles.logoImage}
-          />
-          <h1 className={styles.logo}>DocuSigned</h1>{" "}
-        </div>
-        <nav className={styles.navbar}>
-          <ul>
-            <li>
-              <a href="#about" className={styles.navLink}>
-                About DocuSigned
-              </a>
-            </li>
-            <li>
-              <a href="#contact" className={styles.navLink}>
-                Contact Us
-              </a>
-            </li>
-            {!isLoggedIn ? (
-              <>
-                <li>
-                  <a
-                    href="/login"
-                    className={`${styles.navLink} ${styles.loginBtn}`}
-                  >
-                    Login
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/register"
-                    className={`${styles.navLink} ${styles.registerBtn}`}
-                  >
-                    Sign Up
-                  </a>
-                </li>
-              </>
-            ) : (
-              <li>
-                <a onClick={handleLogout} className={styles.navLink}>
-                  Logout
-                </a>
-              </li>
-            )}
-          </ul>
-        </nav>
-      </header> */}
-
       <main className={styles.mainContent}>
         <section className={styles.textSection}>
           <h2 className={styles.mainHeading}>Welcome to DocuSigned!</h2>

@@ -7,6 +7,7 @@ import { useDrop } from "react-dnd";
 import Button from "../../components/button/Button";
 import { finalizeSignature } from "../../services/DocumentService";
 import { useNavigate } from "react-router-dom";
+import PDFWithDropSignature from "../../components/page-drop/PDFWithDropSignature";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -14,18 +15,22 @@ const SignaturePage = () => {
   const { id: documentId } = useParams();
   const [documentData, setDocumentData] = useState<any>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-  const [numPages, setNumPages] = useState<number | null>(null);
+  // const [numPages, setNumPages] = useState<number | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   //za potpisivanje
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [signatureImages, setSignatureImages] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const navigate = useNavigate();
+  //stranice pdfa
+  const [currentPage, setCurrentPage] = useState(1);
+  const [numPages, setNumPages] = useState(0);
+  const [pdfScale, setPdfScale] = useState(1);
 
   useEffect(() => {
     if (documentId) {
@@ -51,21 +56,10 @@ const SignaturePage = () => {
         .catch(console.error);
     }
   }, [documentId]);
-  // const handleSignatureConfirm = (imgData: string) => {
-  //   setSignatureData(imgData);
-  //   console.log("Signature confirmed:", imgData);
-  // };
+
   const handleSignatureConfirm = (imgData: string) => {
     const id = Date.now();
     setSignatureData(imgData);
-    // setSignatureImages((prev) => [
-    //   ...prev,
-    //   {
-    //     id,
-    //     img: imgData,
-    //     page: currentPage,
-    //   },
-    // ]);
   };
 
   const handleMouseDown = (e: React.MouseEvent, id: number) => {
@@ -118,16 +112,6 @@ const SignaturePage = () => {
             originalName: documentData?.originalName || "Signed Document",
           },
         });
-
-        // Ponudi korisniku da preuzme fajl
-        // const downloadLink = document.createElement("a");
-        // downloadLink.href = finalUrl;
-        // downloadLink.download = response.fileName;
-        // downloadLink.textContent = "Click to download";
-        // downloadLink.style.display = "none";
-        // document.body.appendChild(downloadLink);
-        // downloadLink.click();
-        // document.body.removeChild(downloadLink);
       }
     } catch (error) {
       console.error("Error finalizing signature:", error);
@@ -154,7 +138,7 @@ const SignaturePage = () => {
       if (offset && container) {
         const rect = container.getBoundingClientRect();
         const x = offset.x - rect.left;
-        const y = offset.y - rect.top;
+        const y = offset.y - rect.top - 10;
         const id = Date.now();
         setSignatureImages((prev) => [
           ...prev,
@@ -194,20 +178,17 @@ const SignaturePage = () => {
                 loading="Loading PDF..."
                 error="Failed to load PDF."
               >
-                {Array.from({ length: numPages || 0 }, (_, index) => (
-                  <div
-                    key={index}
-                    className={styles.pdfPageContainer}
-                    onClick={() => setCurrentPage(index + 1)}
-                    style={{ position: "relative" }}
+                <div className={styles.pdfPageContainer}>
+                  <PDFWithDropSignature
+                    key={currentPage}
+                    pageNumber={currentPage}
+                    pdfScale={pdfScale}
+                    onDropImage={(signature) =>
+                      setSignatureImages((prev) => [...prev, signature])
+                    }
                   >
-                    <Page
-                      pageNumber={index + 1}
-                      width={600}
-                      renderTextLayer={false}
-                    />
                     {signatureImages
-                      .filter((s) => s.page === index + 1)
+                      .filter((s) => s.page === currentPage)
                       .map((sig) => (
                         <div
                           key={sig.id}
@@ -215,8 +196,8 @@ const SignaturePage = () => {
                             selectedId === sig.id ? styles.selected : ""
                           }`}
                           style={{
-                            left: `${sig.x}px`,
-                            top: `${sig.y}px`,
+                            left: `${sig.x * pdfScale}px`,
+                            top: `${sig.y * pdfScale}px`,
                             position: "absolute",
                           }}
                           onClick={(e) => {
@@ -229,24 +210,51 @@ const SignaturePage = () => {
                             src={sig.img}
                             alt="signature"
                             className={styles.droppedSignature}
+                            style={{
+                              width: `${sig.width * pdfScale}px`,
+                              height: `${sig.height * pdfScale}px`,
+                            }}
                           />
                           <span
                             className={styles.deleteBtn}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSignatureImages((prev) =>
-                                prev.filter((img) => img.id !== sig.id)
-                              );
+                              removeImage(sig.id);
                             }}
                           >
                             ✖
                           </span>
                         </div>
                       ))}
-                  </div>
-                ))}
+                  </PDFWithDropSignature>
+                </div>
+
+                <div className={styles.pageControls}>
+                  <Button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span style={{ margin: "0 12px" }}>
+                    Page {currentPage} of {numPages}
+                  </span>
+                  <Button
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(prev + 1, numPages || prev)
+                      )
+                    }
+                    disabled={currentPage === numPages}
+                  >
+                    Next
+                  </Button>
+                </div>
               </Document>
             )}
+
           {documentData?.savedName
             ?.toLowerCase()
             .match(/\.(jpg|jpeg|png)$/) && (
@@ -298,6 +306,7 @@ const SignaturePage = () => {
           )}
         </div>
       </div>
+
       <div className={styles.sidebar}>
         <SignArea onConfirm={handleSignatureConfirm} />
         <Button onClick={handleFinalizeSigning}>Sign and Save</Button>

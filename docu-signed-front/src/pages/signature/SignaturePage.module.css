@@ -30,8 +30,10 @@
 }
 
 .previewContainer {
-  width: 800px;
-  max-width: 100%;
+  /* width: 800px;
+  max-width: 100%; */
+  width: fit-content;
+  max-width: 900px;
   margin: 0 auto;
   position: relative;
   border: 2px solid var(--light-orange);
@@ -45,6 +47,7 @@
 .pdfPageContainer {
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .pageContent {
@@ -93,4 +96,17 @@
   cursor: pointer;
   font-weight: bold;
   z-index: 2;
+}
+
+.pdfPageContainer {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+.pageControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
 }
