@@ -128,7 +128,7 @@ const SignaturePage = () => {
     };
   }, [draggingId, dragOffset]);
 
-  const [{ isOver }, drop] = useDrop(() => ({
+  const [{ isOver, isOverCurrent }, drop] = useDrop(() => ({
     accept: "signature-img",
     drop: (item: any, monitor) => {
       if (!item.image) return;
@@ -156,6 +156,7 @@ const SignaturePage = () => {
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
+      isOverCurrent: monitor.isOver({ shallow: true }),
     }),
   }));
 
@@ -258,7 +259,12 @@ const SignaturePage = () => {
           {documentData?.savedName
             ?.toLowerCase()
             .match(/\.(jpg|jpeg|png)$/) && (
-            <div className={styles.imageWrapper} ref={previewRef}>
+            <div
+              className={`${styles.imageWrapper} ${
+                isOver && !isOverCurrent ? styles.invalidDrop : ""
+              }`}
+              ref={previewRef}
+            >
               <img
                 src={`http://localhost:5000/uploads/signed/${documentData.savedName}`}
                 alt="Document"

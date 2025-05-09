@@ -263,6 +263,7 @@ body::before {
   background-color: var(--white);
   /* padding: 20px; */
   box-sizing: border-box;
+  position: relative;
 }
 
 .pdfPageContainer {
@@ -283,4 +284,12 @@ body::before {
 
 .pageControls button {
   margin: 0 10px;
+}
+.invalidDrop {
+  background-color: rgba(255, 0, 0, 0.05);
+}
+.imageWrapper {
+  width: fit-content;
+  position: relative;
+  overflow: visible;
 }

@@ -69,15 +69,6 @@ async function generateSignedDocument({
           console.error("Invalid width for field:", field);
           return null;
         }
-        console.log("=== Field ===");
-        console.log(
-          "displayWidth:",
-          field.displayWidth,
-          "realWidth:",
-          metadata.width
-        );
-        console.log("LEFT (before scale):", field.left, "scaleX:", scaleX);
-        console.log("LEFT (after scale):", Math.round(field.left * scaleX));
 
         return {
           input: {
@@ -103,11 +94,21 @@ async function generateSignedDocument({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const page = pdfDoc.getPages()[0];
     const pageHeight = page.getHeight(); // 792
+    const pageWidth = page.getWidth();
 
-    const adjustedFields = signatureFields.map((field) => ({
-      ...field,
-      top: pageHeight - field.top,
-    }));
+    const adjustedFields = signatureFields.map((field) => {
+      const scaleY = pageHeight / (field.displayHeight || 600);
+      const scaleX = pageWidth / (field.displayWidth || 600);
+
+      return {
+        ...field,
+        //ght - field.top * scaleY - parseInt(field.height) * scaleY,
+        top: field.top * scaleY,
+        left: field.left * scaleX,
+        width: parseInt(field.width) * scaleX,
+        height: parseInt(field.height) * scaleY,
+      };
+    });
 
     console.log("PDF dimenzije:", page.getWidth(), pageHeight);
     console.log("Preračunata top vrednost:", adjustedFields[0].top);

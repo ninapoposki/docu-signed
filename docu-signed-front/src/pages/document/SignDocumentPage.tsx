@@ -21,19 +21,6 @@ const SignDocumentPage = () => {
   //za docx
   const docxContainerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (document?.type?.includes("wordprocessingml.document")) {
-      fetch(fileUrl)
-        .then((res) => res.blob())
-        .then((blob) => {
-          if (docxContainerRef.current) {
-            renderAsync(blob, docxContainerRef.current);
-          }
-        })
-        .catch(console.error);
-    }
-  }, [fileUrl, document]);
-
   const [mode, setMode] = useState<"drag" | "manual">("drag");
   const [signatureFields, setSignatureFields] = useState<any[]>([]);
   const [signatureWidth, setSignatureWidth] = useState("120");
@@ -78,13 +65,27 @@ const SignDocumentPage = () => {
         .catch(console.error);
     }
   }, [fileUrl, document]);
+  useEffect(() => {
+    if (document?.type?.includes("wordprocessingml.document")) {
+      fetch(fileUrl)
+        .then((res) => res.blob())
+        .then((blob) => {
+          if (docxContainerRef.current) {
+            // renderAsync(blob, docxContainerRef.current);
+            renderAsync(blob, docxContainerRef.current).then(() => {
+              setTimeout(() => {
+                const rect = docxContainerRef.current!.getBoundingClientRect();
+                setImageSize({ width: rect.width, height: rect.height });
+              }, 100);
+            });
 
-  // useEffect(() => {
-  //   if (imageRef.current) {
-  //     const rect = imageRef.current.getBoundingClientRect();
-  //     setImageSize({ width: rect.width, height: rect.height });
-  //   }
-  // }, [document]);
+            const rect = docxContainerRef.current!.getBoundingClientRect();
+            setImageSize({ width: rect.width, height: rect.height });
+          }
+        })
+        .catch(console.error);
+    }
+  }, [fileUrl, document]);
   const handleMouseMove = (e: MouseEvent) => {
     if (draggingId === null) return;
     const newLeft = e.clientX - dragOffset.x;
@@ -154,7 +155,7 @@ const SignDocumentPage = () => {
     }),
   }));
 
-  const [{ isOver }, drop] = useDrop(() => ({
+  const [{ isOver, isOverCurrent }, drop] = useDrop(() => ({
     accept: "signature",
     drop: (item, monitor) => {
       if (mode !== "drag") return;
@@ -163,7 +164,14 @@ const SignDocumentPage = () => {
       const container = previewRef.current;
 
       if (offset && container) {
-        const containerRect = container.getBoundingClientRect();
+        const containerRect = document?.type?.includes(
+          "wordprocessingml.document"
+        )
+          ? docxContainerRef.current?.getBoundingClientRect()
+          : previewRef.current?.getBoundingClientRect();
+
+        if (!containerRect) return;
+
         let relativeX = offset.x - containerRect.left;
         let relativeY = offset.y - containerRect.top;
 
@@ -177,7 +185,6 @@ const SignDocumentPage = () => {
           relativeY = relativeY / pdfScale;
         }
 
-        // Prilagoditi za sve dokumente, ne samo pdf
         if (
           document?.type?.includes("image") ||
           document?.type?.includes("wordprocessingml.document")
@@ -208,6 +215,7 @@ const SignDocumentPage = () => {
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
+      isOverCurrent: monitor.isOver({ shallow: true }),
     }),
   }));
 
@@ -320,9 +328,20 @@ const SignDocumentPage = () => {
               </div>
             </Document>
           ) : document?.type?.includes("image") ? (
-            <div style={{ position: "relative" }}>
+            <div
+              className={`${styles.imageWrapper} ${
+                isOver && !isOverCurrent ? styles.invalidDrop : ""
+              }`}
+              ref={(node) => {
+                drop(node);
+                previewRef.current = node;
+              }}
+              onClick={() => setSelectedId(null)}
+              style={{ position: "relative" }}
+            >
+              {" "}
               <img
-                src={`${fileUrl}?cacheBust=${Date.now()}`} // prisilno sprečava keširanje
+                src={`${fileUrl}?cacheBust=${Date.now()}`}
                 ref={imageRef}
                 className={styles.imageViewer}
                 alt="Uploaded"
@@ -330,13 +349,10 @@ const SignDocumentPage = () => {
                 onLoad={() => {
                   if (imageRef.current) {
                     const rect = imageRef.current.getBoundingClientRect();
-                    console.log("Measured on load:", rect.width, rect.height);
-
                     setImageSize({ width: rect.width, height: rect.height });
                   }
                 }}
               />
-
               {signatureFields.map((field) => (
                 <div
                   key={field.id}
@@ -371,7 +387,17 @@ const SignDocumentPage = () => {
               ))}
             </div>
           ) : document?.type?.includes("wordprocessingml.document") ? (
-            <div className={styles.docxWrapper}>
+            <div
+              className={`${styles.docxWrapper} ${
+                isOver && !isOverCurrent ? styles.invalidDrop : ""
+              }`}
+              ref={(node) => {
+                drop(node);
+                previewRef.current = node;
+              }}
+              onClick={() => setSelectedId(null)}
+            >
+              {" "}
               <div ref={docxContainerRef} className={styles.docxPreview} />
               {signatureFields.map((field) => (
                 <div

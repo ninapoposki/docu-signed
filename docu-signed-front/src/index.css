@@ -23,7 +23,6 @@ code {
   --white: #ffffff;
   --font-family: "Poppins", sans-serif;
 }
-/* Uklanja selekciju i text kursor globalno */
 * {
   cursor: default;
   user-select: none;
@@ -31,8 +30,7 @@ code {
 
 input,
 textarea,
-select,
-button {
+select {
   cursor: text;
   user-select: text;
 }
