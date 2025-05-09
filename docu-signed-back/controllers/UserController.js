@@ -21,6 +21,19 @@ const userController = {
       res.status(400).json({ message: error.message });
     }
   },
+  async checkUserExistence(req, res) {
+    try {
+      const email = req.query;
+      const userExists = await userService.checkUserExistence(email);
+      if (userExists) {
+        return res.json({ exists: true });
+      } else {
+        return res.json({ exists: false });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 module.exports = userController;

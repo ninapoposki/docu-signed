@@ -1,0 +1,295 @@
+/* :root {
+  --light-cream: #f8f4e6;
+  --light-beige: #f1e0c6;
+  --light-gray: #9ea283;
+  --dark-gray: #333;
+  --light-orange: #d1c488;
+  --white: #ffffff;
+  --font-family: "Poppins", sans-serif;
+} */
+
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 30px 60px;
+}
+.pdfPage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.leftPane {
+  width: 70%;
+}
+
+.title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+/* .previewContainer {
+  position: relative;
+  border: 2px solid var(--light-orange);
+  border-radius: 12px;
+  background-color: var(--white);
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+} */
+.previewContainer {
+  /* width: 800px; */
+  width: fit-content;
+  max-width: 900px;
+  /* max-width: 100%; */
+  margin: 0 auto;
+  position: relative;
+  border: 2px solid var(--light-orange);
+  border-radius: 12px;
+  background-color: var(--white);
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  /* padding: 10px; */
+}
+
+/* .pdfViewer,
+.imageViewer {
+  width: 100%;
+  height: 600px;
+  display: block;
+  margin: 0 auto;
+  border: none;
+  object-fit: contain;
+} */
+.pdfViewer,
+.imageViewer {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border: none;
+}
+
+.signatureField {
+  position: absolute;
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  border: 2px dashed #999;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 1px;
+  border: none;
+  border-bottom: 2px solid #555;
+  color: transparent;
+  background: transparent;
+  z-index: 10;
+}
+
+.signatureField::after {
+  content: "Sign here";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.selected {
+  box-shadow: 0 0 0 3px #5193b3;
+}
+
+.deleteBtn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.signatureField:hover .deleteBtn {
+  display: flex;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: var(--light-beige);
+  padding: 25px 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--font-family);
+  margin-top: 80px;
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+}
+
+.sidebar h3 {
+  font-size: 1.5rem;
+  color: var(--dark-gray);
+  text-align: center;
+  font-weight: 600;
+}
+
+.modeButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeButtons button {
+  background-color: var(--light-orange);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modeButtons button:hover {
+  background-color: #b9a661;
+}
+
+.draggableBox {
+  background-color: var(--white);
+  border: 2px dashed var(--light-orange);
+  padding: 14px;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--light-orange);
+  font-size: 0.95rem;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.settings input[type="number"],
+.settings input[type="color"] {
+  padding: 8px 12px;
+  border: 1px solid var(--light-gray);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background-color: var(--white);
+  margin-top: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.settings input:focus {
+  outline: none;
+  border-color: var(--light-orange);
+}
+
+.addField {
+  background-color: var(--light-orange) !important;
+  color: var(--white) !important;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.sendBtn {
+  margin-top: auto;
+  background-color: var(--light-gray) !important;
+  color: var(--white) !important;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 1rem;
+}
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../../assets/homepagepic.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.docxWrapper {
+  background: var(--white);
+
+  position: relative;
+  width: 100%;
+  height: 700px;
+}
+
+.docxPreview {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: var(--white);
+  /* padding: 20px; */
+  box-sizing: border-box;
+  position: relative;
+}
+
+.pdfPageContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.pageContent {
+  max-width: 600px;
+  width: 100%;
+}
+.pageControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.pageControls button {
+  margin: 0 10px;
+}
+.invalidDrop {
+  background-color: rgba(255, 0, 0, 0.05);
+}
+.imageWrapper {
+  width: fit-content;
+  position: relative;
+  overflow: visible;
+}

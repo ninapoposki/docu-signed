@@ -1,32 +1,34 @@
 import React, { useState } from "react";
-import { login } from "../../services/AuthService.ts";
-import { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { login } from "../../services/AuthService";
+// import { FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
-import Button from "../../components/button/Button.tsx";
-import InputField from "../../components/input/InputField.tsx";
-
-// import InputField from '../../components/common/InputFiels';
-// import Button from '../../components/common/Button';
+import Button from "../../components/button/Button";
+import InputField from "../../components/input/InputField";
+import { FieldError, useForm } from "react-hook-form";
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  //react-hook-form
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const [errorMessage, setErrorMessage] = useState("");
   const [token, setToken] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setErrorMessage("Email and password are required");
-      return;
-    }
+  const onSubmit = async (data: any) => {
+    const { email, password } = data;
+    console.log("Form data:", data);
 
     try {
       const userToken = await login(email, password);
       setToken(userToken);
       localStorage.setItem("token", userToken);
+      window.dispatchEvent(new Event("authChanged"));
       setErrorMessage("");
       navigate("/");
     } catch (error) {
@@ -40,26 +42,48 @@ function LoginPage() {
     <div className={styles.container}>
       <div className={styles.formContainer}>
         <h2 className={styles.title}>Welcome to DocuSigned!</h2>
-        <form onSubmit={handleSubmit}>
-          <InputField
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-          />
-          <InputField
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-          />
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className={styles.inputFieldContainer}>
+            <InputField
+              type="email"
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                  message: "Invalid email format",
+                },
+              })}
+              placeholder="Email"
+            />
+            {errors.email && (
+              <p className={styles.errorMessage}>
+                {(errors.email as FieldError)?.message}
+              </p>
+            )}
+          </div>
 
-          {/* <button className={styles.button} type="submit">
-            Login
-          </button> */}
+          <div className={styles.inputFieldContainer}>
+            <InputField
+              type="password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+              placeholder="Password"
+            />
+            {errors.password && (
+              <p className={styles.errorMessage}>
+                {(errors.password as FieldError)?.message}
+              </p>
+            )}
+          </div>
+
           <Button type="submit">Login</Button>
           <div className={styles.signUpLink}>
-            Don’t have an account? Sign Up
+            Don’t have an account? <Link to="/register">Sign Up</Link>
           </div>
           {errorMessage && (
             <p className={styles.errorMessage}>{errorMessage}</p>

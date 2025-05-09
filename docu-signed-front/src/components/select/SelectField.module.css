@@ -1,0 +1,26 @@
+.select {
+  background-color: #d1c488;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 20%;
+  height: 10%;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* color: white; */
+  margin-top: 8px;
+  display: block;
+  padding: 6px 10px;
+  font-size: 1rem;
+}
+
+.select:hover {
+  background-color: #dbc76e;
+}
+
+.select:disabled {
+  background-color: #b0b0b0;
+  cursor: not-allowed;
+}
+.inputField:focus {
+  outline: 1px solid rgb(132, 130, 130);
+}

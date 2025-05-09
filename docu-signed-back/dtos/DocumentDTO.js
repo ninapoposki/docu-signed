@@ -1,5 +1,5 @@
 class DocumentDTO {
-  constructor({ id, userId, type, size, originalName, savedName, createdAt }) {
+  constructor({ id, userId, type, size, originalName }) {
     this.id = id;
     this.userId = userId;
     this.type = type;
